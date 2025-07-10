@@ -1,27 +1,23 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import ACCESS_ENUM from '@/access/accessEnum.ts'
+import { getLoginUser } from '@/api/userController.ts'
+import AccessEnum from '@/access/accessEnum.ts'
+import '@/api/typings.d.ts'
 
 export const useLoginUserStore = defineStore('loginUser', () => {
-  const loginUser = ref({
-    userName: '未登录',
-    id: 0,
-    userRole: ACCESS_ENUM.NOT_LOGGED_IN,
+  const loginUser = ref<API.LoginUserVO>({
+    userRole: AccessEnum.NOT_LOGGED_IN,
   })
 
   async function fetchLoginUser() {
-    // 测试用户登录， 3s后自动登录
-    setTimeout(() => {
-      loginUser.value = {
-        userName: '测试用户1213123123132213123123',
-        id: 1,
-        userRole: 'admin',
-      }
-    }, 3000)
+    const response = await getLoginUser()
+    if (response.data.code === 0 && response.data.data) {
+      loginUser.value = response.data.data
+    }
   }
 
-  function setLoginUser(userName: string) {
-    loginUser.value.userName = userName
+  function setLoginUser(newLoginUser: API.LoginUserVO) {
+    loginUser.value = newLoginUser
   }
 
   return { loginUser, fetchLoginUser, setLoginUser }

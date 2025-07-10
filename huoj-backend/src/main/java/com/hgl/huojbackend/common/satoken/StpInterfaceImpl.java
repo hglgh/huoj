@@ -2,6 +2,12 @@ package com.hgl.huojbackend.common.satoken;
 
 
 import cn.dev33.satoken.stp.StpInterface;
+import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.bean.BeanUtil;
+import com.hgl.huojbackend.common.constant.UserConstant;
+import com.hgl.huojbackend.common.redis.RedisCache;
+import com.hgl.huojbackend.exception.ErrorCode;
+import com.hgl.huojbackend.exception.ThrowUtils;
 import com.hgl.huojbackend.model.entity.User;
 import com.hgl.huojbackend.service.UserService;
 import jakarta.annotation.Resource;
@@ -34,7 +40,15 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        User user = userService.getById(loginId.toString());
+        if (loginId == null) {
+            return List.of();
+        }
+        String key = UserConstant.USER_LOGIN_STATE + loginId;
+        User user = BeanUtil.toBean(StpUtil.getSession().get(key), User.class);
+        if (user != null) {
+            return List.of(user.getUserRole());
+        }
+        user = userService.getById(loginId.toString());
         if (user != null) {
             return List.of(user.getUserRole());
         }

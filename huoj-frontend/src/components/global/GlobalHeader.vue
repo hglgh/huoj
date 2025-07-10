@@ -18,9 +18,18 @@
               <div class="title">HUOJ</div>
             </div>
           </router-link>
-          <el-menu-item v-for="item in visibleRoutes" :key="item.path" :index="item.path">
-            {{ item.name }}
-          </el-menu-item>
+          <!-- 动态生成菜单项 -->
+          <template v-for="item in visibleRoutes" :key="item.path">
+            <!-- 如果有子路由，则使用 el-sub-menu -->
+            <el-sub-menu v-if="item.children && item.children.length" :index="item.path">
+              <template #title>{{ item.name }}</template>
+              <el-menu-item v-for="child in item.children" :key="child.path" :index="child.path">
+                {{ child.name }}
+              </el-menu-item>
+            </el-sub-menu>
+            <!-- 否则使用 el-menu-item -->
+            <el-menu-item v-else :index="item.path">{{ item.name }}</el-menu-item>
+          </template>
         </el-menu>
       </el-col>
       <el-col :span="3">
@@ -38,9 +47,7 @@
             </el-space>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>Action 1</el-dropdown-item>
-                <el-dropdown-item>Action 2</el-dropdown-item>
-                <el-dropdown-item>Action 3</el-dropdown-item>
+                <el-dropdown-item @click="doLogout">注销 </el-dropdown-item>
                 <el-dropdown-item disabled>Action 4</el-dropdown-item>
                 <el-dropdown-item divided>Action 5</el-dropdown-item>
               </el-dropdown-menu>
@@ -61,11 +68,11 @@ import { routes } from '@/router/routes.ts'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import checkAccess from '@/access/checkAccess.ts'
+import { userLogout } from '@/api/userController.ts'
 
 const loginUserStore = useLoginUserStore()
-loginUserStore.fetchLoginUser()
 
-// 过滤掉隐藏的菜单项
+/*// 过滤掉隐藏的菜单项
 const visibleRoutes = computed(() => {
   return routes.filter((route) => {
     if (route.meta?.hideInMenu) {
@@ -74,6 +81,43 @@ const visibleRoutes = computed(() => {
     // 判断当前用户是否具有访问权限
     return checkAccess(loginUserStore.loginUser, route.meta?.access)
   })
+})*/
+// 过滤掉隐藏的菜单项，并递归处理子路由
+const visibleRoutes = computed(() => {
+  const filterRoute = (route) => {
+    // 如果当前路由被标记为隐藏
+    if (route.meta?.hideInMenu) {
+      return false
+    }
+
+    // 检查权限
+    return !(route.meta?.access && !checkAccess(loginUserStore.loginUser, route.meta.access))
+  }
+
+  const processRoutes = (routes) => {
+    return routes.reduce((acc, route) => {
+      // 处理当前路由是否可见
+      const hasAccess = filterRoute(route)
+
+      // 如果有子路由，递归处理子路由
+      let children = []
+      if (route.children?.length) {
+        children = processRoutes(route.children)
+      }
+
+      // 如果自己可见 或者 子路由中存在可见项，则保留该路由
+      if (hasAccess || children.length > 0) {
+        acc.push({
+          ...route,
+          children: children.length > 0 ? children : undefined,
+        })
+      }
+
+      return acc
+    }, [])
+  }
+
+  return processRoutes(routes)
 })
 
 const activeIndex = ref('/')
@@ -83,6 +127,10 @@ router.afterEach((to) => {
 })
 const handleSelect = (key: string) => {
   router.push(key)
+}
+const doLogout = () => {
+  userLogout()
+  router.push('/user/login')
 }
 </script>
 <style scoped>

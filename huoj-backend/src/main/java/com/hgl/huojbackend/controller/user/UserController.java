@@ -18,10 +18,7 @@ import com.hgl.huojbackend.model.vo.LoginUserVO;
 import com.hgl.huojbackend.model.vo.UserVO;
 import com.hgl.huojbackend.service.UserService;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @ClassName UserController
@@ -29,7 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @Description //TODO
  * @Date 2025/7/8 15:17
  */
-@RestController("/user")
+@RestController
+@RequestMapping("/user")
 public class UserController {
 
     @Resource
@@ -87,6 +85,12 @@ public class UserController {
         return ResultUtils.success(userService.userLogout());
     }
 
+    /**
+     * 添加用户(仅管理员可操作)
+     *
+     * @param userAddRequest 添加信息
+     * @return 添加结果
+     */
     @PostMapping("/add")
     @SaCheckRole(UserRoleConstant.USER_ROLE_ADMIN)
     public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest) {
@@ -105,6 +109,12 @@ public class UserController {
         return ResultUtils.success(userService.updateUser(userRegisterRequest));
     }
 
+    /**
+     * 删除用户(仅管理员可操作)
+     *
+     * @param deleteRequest 删除信息
+     * @return 删除结果
+     */
     @PostMapping("/delete")
     @SaCheckRole(UserRoleConstant.USER_ROLE_ADMIN)
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
@@ -112,6 +122,12 @@ public class UserController {
         return ResultUtils.success(userService.removeById(deleteRequest.getId()));
     }
 
+    /**
+     * 根据id获取用户(仅管理员可操作)
+     *
+     * @param id 用户id
+     * @return 用户信息
+     */
     @GetMapping("/get")
     @SaCheckRole(UserRoleConstant.USER_ROLE_ADMIN)
     public BaseResponse<User> getUserById(Long id) {
@@ -121,6 +137,12 @@ public class UserController {
         return ResultUtils.success(user);
     }
 
+    /**
+     * 根据id获取用户VO
+     *
+     * @param id 用户id
+     * @return 用户信息
+     */
     @GetMapping("/get/vo")
     @SaCheckLogin
     public BaseResponse<UserVO> getUserVoById(Long id) {
@@ -129,6 +151,12 @@ public class UserController {
         return ResultUtils.success(userService.getUserVO(user));
     }
 
+    /**
+     * 分页获取用户列表(仅管理员可操作)
+     *
+     * @param userQueryRequest 查询信息
+     * @return 用户列表
+     */
     @PostMapping("/list/page")
     @SaCheckRole(UserRoleConstant.USER_ROLE_ADMIN)
     public BaseResponse<Page<UserVO>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest) {

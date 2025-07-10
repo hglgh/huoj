@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @Description //TODO
  * @Date 2025/7/8 13:08
  */
-@RestController("/test")
+@RestController
+@RequestMapping("/test")
 public class TestController {
     // 会话登录接口
     @GetMapping("doLogin")

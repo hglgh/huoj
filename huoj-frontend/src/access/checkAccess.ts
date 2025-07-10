@@ -7,7 +7,7 @@ import AccessEnum from '@/access/accessEnum.ts'
  * @returns {boolean} 是否有权限
  */
 const checkAccess = (
-  loginUser: any,
+  loginUser: API.LoginUserVO,
   needAccess: string = AccessEnum.NOT_LOGGED_IN,
 ): boolean => {
   const userRole = loginUser?.userRole ?? AccessEnum.NOT_LOGGED_IN
